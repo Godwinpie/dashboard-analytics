@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #e2e8f0;
+            margin: 0;
+            padding: 0;
+            background-color: #0a1929;
+        }
+        .email-wrapper {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #132f4c;
+        }
+        .email-header {
+            background: linear-gradient(135deg, #0ea5e9 0%, #06b6d4 100%);
+            padding: 40px 20px;
+            text-align: center;
+        }
+        .email-header h1 {
+            color: #ffffff;
+            margin: 0;
+            font-size: 26px;
+        }
+        .email-header .subtitle {
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 14px;
+            margin-top: 8px;
+        }
+        .email-header .icon {
+            font-size: 56px;
+            margin-bottom: 15px;
+        }
+        .email-body {
+            padding: 40px 30px;
+            background-color: #132f4c;
+        }
+        .email-body h2 {
+            color: #0ea5e9;
+            font-size: 22px;
+            margin-top: 0;
+            margin-bottom: 20px;
+        }
+        .email-body p {
+            margin-bottom: 15px;
+            font-size: 15px;
+            line-height: 1.8;
+            color: #94a3b8;
+        }
+        .credentials-box {
+            background: #0d2137;
+            padding: 25px;
+            border-radius: 12px;
+            margin: 25px 0;
+            border-left: 4px solid #0ea5e9;
+        }
+        .credentials-box h3 {
+            color: #e2e8f0;
+            margin-top: 0;
+            margin-bottom: 15px;
+            font-size: 18px;
+        }
+        .credential-item {
+            margin-bottom: 12px;
+            font-size: 15px;
+        }
+        .credential-label {
+            font-weight: 600;
+            color: #64748b;
+            display: inline-block;
+            width: 100px;
+        }
+        .credential-value {
+            color: #e2e8f0;
+            font-family: 'Courier New', monospace;
+            background: #0a1929;
+            padding: 6px 12px;
+            border-radius: 6px;
+            border: 1px solid rgba(56, 189, 248, 0.2);
+        }
+        .btn-container {
+            text-align: center;
+            margin: 30px 0;
+        }
+        .btn-login {
+            display: inline-block;
+            padding: 14px 40px;
+            background: linear-gradient(135deg, #0ea5e9 0%, #06b6d4 100%);
+            color: #ffffff;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 16px;
+            box-shadow: 0 4px 15px rgba(14, 165, 233, 0.3);
+        }
+        .btn-login:hover {
+            box-shadow: 0 6px 20px rgba(14, 165, 233, 0.4);
+        }
+        .warning-box {
+            background: rgba(245, 158, 11, 0.15);
+            padding: 18px;
+            border-radius: 8px;
+            border-left: 4px solid #f59e0b;
+            margin: 25px 0;
+        }
+        .warning-box strong {
+            color: #fbbf24;
+            font-size: 15px;
+        }
+        .warning-box p {
+            margin: 8px 0 0 0;
+            color: #fbbf24;
+            font-size: 14px;
+        }
+        .info-box {
+            background: rgba(14, 165, 233, 0.1);
+            padding: 18px;
+            border-radius: 8px;
+            border-left: 4px solid #0ea5e9;
+            margin: 25px 0;
+        }
+        .info-box p {
+            margin: 0;
+            color: #0ea5e9;
+            font-size: 14px;
+        }
+        .email-footer {
+            background: #0d2137;
+            padding: 30px;
+            text-align: center;
+            border-top: 1px solid rgba(56, 189, 248, 0.1);
+        }
+        .email-footer p {
+            margin: 5px 0;
+            color: #64748b;
+            font-size: 14px;
+        }
+        .email-footer .company-name {
+            font-weight: 600;
+            color: #0ea5e9;
+        }
+        .divider {
+            height: 1px;
+            background: rgba(56, 189, 248, 0.1);
+            margin: 25px 0;
+        }
+        @media only screen and (max-width: 600px) {
+            .email-body {
+                padding: 30px 20px;
+            }
+            .email-header h1 {
+                font-size: 24px;
+            }
+            .btn-login {
+                padding: 12px 30px;
+                font-size: 14px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="email-wrapper">
+        <!-- Header -->
+        <div class="email-header">
+            <div class="icon">📊</div>
+            <h1>Halasmile Creative Analytics</h1>
+            <p class="subtitle">Creative Performance Dashboard</p>
+        </div>
+
+        <!-- Body -->
+        <div class="email-body">
+            <h2>Welcome! 👋</h2>
+            
+            <p>You have been invited to access the <strong style="color: #e2e8f0;">Halasmile Creative Analytics</strong> by <strong style="color: #e2e8f0;">{{ inviter_name }}</strong>.</p>
+            <p>Your account has been created and is ready to use. Below are your login credentials:</p>
+
+            <!-- Credentials Box -->
+            <div class="credentials-box">
+                <h3>🔐 Your Login Credentials</h3>
+                <div class="credential-item">
+                    <span class="credential-label">Email:</span>
+                    <span class="credential-value">{{ user_email }}</span>
+                </div>
+                <div class="credential-item">
+                    <span class="credential-label">Password:</span>
+                    <span class="credential-value">{{ user_password }}</span>
+                </div>
+            </div>
+
+            <!-- Login Button -->
+            <div class="btn-container">
+                <a href="{{ login_url }}" class="btn-login">
+                    🔓 Login to Dashboard
+                </a>
+            </div>
+
+            <div class="divider"></div>
+
+            <!-- Info Box -->
+            <div class="info-box">
+                <p><strong>ℹ️ Need Help?</strong> If you have any questions or didn't expect this invitation, please contact the person who invited you.</p>
+            </div>
+
+            <p style="margin-top: 30px; color: #94a3b8;">Best regards,<br>
+            <strong style="color: #0ea5e9;">Halasmile Creative Analytics Team</strong></p>
+        </div>
+
+        <!-- Footer -->
+        <div class="email-footer">
+            <p class="company-name">Halasmile Creative Analytics</p>
+            <p style="color: #64748b; font-size: 12px;">This is an automated email. Please do not reply to this message.</p>
+            <p style="color: #64748b; font-size: 12px; margin-top: 10px;">
+                Dashboard URL: <a href="{{ dashboard_url }}" style="color: #0ea5e9;">{{ dashboard_url }}</a>
+            </p>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,15 @@
+django
+django-allauth
+
+gspread
+google-auth
+python-dotenv
+
+pandas
+
+channels
+channels-redis
+
+daphne
+
+

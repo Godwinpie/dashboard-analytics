@@ -1,0 +1,285 @@
+{% extends 'base.html' %}
+{% block extra_head %}
+<style>
+    .page-header {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        margin-bottom: 30px;
+    }
+    .back-link {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 40px;
+        height: 40px;
+        background: rgba(14, 165, 233, 0.1);
+        border: 1px solid rgba(14, 165, 233, 0.2);
+        border-radius: 10px;
+        color: #0ea5e9;
+        text-decoration: none;
+        font-size: 1.2rem;
+        transition: all 0.2s ease;
+    }
+    .back-link:hover {
+        background: rgba(14, 165, 233, 0.2);
+        border-color: rgba(14, 165, 233, 0.4);
+    }
+    .page-title {
+        color: #e2e8f0;
+        font-size: 1.5rem;
+        font-weight: 600;
+        margin: 0;
+    }
+    .page-subtitle {
+        color: #64748b;
+        font-size: 0.9rem;
+        margin-top: 4px;
+    }
+    .user-card {
+        background: #132f4c;
+        border: 1px solid rgba(56, 189, 248, 0.1);
+        border-radius: 12px;
+        padding: 24px;
+        margin-bottom: 24px;
+        display: flex;
+        align-items: center;
+        gap: 16px;
+    }
+    .user-avatar {
+        width: 56px;
+        height: 56px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #0ea5e9 0%, #06b6d4 100%);
+        color: #fff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        font-size: 1.4rem;
+    }
+    .user-details h3 {
+        color: #e2e8f0;
+        font-size: 1.1rem;
+        font-weight: 600;
+        margin: 0 0 4px 0;
+    }
+    .user-details p {
+        color: #64748b;
+        font-size: 0.9rem;
+        margin: 0;
+    }
+    .access-card {
+        background: #132f4c;
+        border: 1px solid rgba(56, 189, 248, 0.1);
+        border-radius: 12px;
+        padding: 24px;
+    }
+    .access-card-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 20px;
+        padding-bottom: 16px;
+        border-bottom: 1px solid rgba(56, 189, 248, 0.1);
+    }
+    .access-card-title {
+        color: #e2e8f0;
+        font-size: 1.1rem;
+        font-weight: 600;
+        margin: 0;
+    }
+    .select-actions {
+        display: flex;
+        gap: 10px;
+    }
+    .select-btn {
+        background: rgba(14, 165, 233, 0.1);
+        border: 1px solid rgba(14, 165, 233, 0.2);
+        color: #0ea5e9;
+        padding: 6px 12px;
+        border-radius: 6px;
+        font-size: 0.8rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+    .select-btn:hover {
+        background: rgba(14, 165, 233, 0.2);
+    }
+    .charts-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        gap: 12px;
+    }
+    .chart-option {
+        background: #0d2137;
+        border: 1px solid rgba(56, 189, 248, 0.08);
+        border-radius: 10px;
+        padding: 16px;
+        transition: all 0.2s ease;
+        cursor: pointer;
+    }
+    .chart-option:hover {
+        border-color: rgba(14, 165, 233, 0.3);
+        background: rgba(14, 165, 233, 0.05);
+    }
+    .chart-option.selected {
+        border-color: #0ea5e9;
+        background: rgba(14, 165, 233, 0.1);
+    }
+    .chart-option label {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        cursor: pointer;
+        color: #94a3b8;
+        font-weight: 400;
+        font-size: 0.95rem;
+    }
+    .chart-option.selected label {
+        color: #e2e8f0;
+    }
+    .chart-option input[type="checkbox"] {
+        width: 20px;
+        height: 20px;
+        accent-color: #0ea5e9;
+        flex-shrink: 0;
+    }
+    .chart-icon {
+        font-size: 1.2rem;
+        width: 28px;
+        text-align: center;
+    }
+    .form-actions {
+        display: flex;
+        gap: 12px;
+        margin-top: 24px;
+        padding-top: 20px;
+        border-top: 1px solid rgba(56, 189, 248, 0.1);
+    }
+    .btn-save {
+        background: linear-gradient(135deg, #0ea5e9 0%, #06b6d4 100%);
+        color: #fff;
+        border: none;
+        border-radius: 8px;
+        padding: 12px 32px;
+        font-size: 1rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    .btn-save:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(14, 165, 233, 0.4);
+    }
+    .btn-cancel {
+        background: rgba(100, 116, 139, 0.2);
+        border: 1px solid rgba(100, 116, 139, 0.3);
+        color: #94a3b8;
+        border-radius: 8px;
+        padding: 12px 24px;
+        font-size: 1rem;
+        font-weight: 500;
+        cursor: pointer;
+        text-decoration: none;
+        transition: all 0.2s ease;
+    }
+    .btn-cancel:hover {
+        background: rgba(100, 116, 139, 0.3);
+    }
+    /* Hide default Django form rendering */
+    .access-card > form > p,
+    .access-card > form > ul {
+        display: none;
+    }
+</style>
+{% endblock %}
+{% block content %}
+<div class="container">
+    <div class="page-header">
+        <a href="{% url 'users:manage_users_list' %}" class="back-link">←</a>
+        <div>
+            <h2 class="page-title">Manage Chart Access</h2>
+            <p class="page-subtitle">Configure dashboard permissions for this user</p>
+        </div>
+    </div>
+
+    <div class="user-card">
+        <div class="user-avatar">{{ managed_user.username|first|upper }}</div>
+        <div class="user-details">
+            <h3>{{ managed_user.get_full_name|default:managed_user.username }}</h3>
+            <p>{{ managed_user.email }}</p>
+        </div>
+    </div>
+
+    <div class="access-card">
+        <form method="post" id="accessForm">
+            {% csrf_token %}
+            
+            <div class="access-card-header">
+                <h3 class="access-card-title">Chart Access Permissions</h3>
+                <div class="select-actions">
+                    <button type="button" class="select-btn" onclick="selectAll()">Select All</button>
+                    <button type="button" class="select-btn" onclick="deselectAll()">Deselect All</button>
+                </div>
+            </div>
+
+            <div class="charts-grid" id="chartsGrid">
+                {% for value, label in form.fields.charts.choices %}
+                <div class="chart-option {% if value in form.initial.charts %}selected{% endif %}" onclick="toggleChart(this, '{{ value }}')">
+                    <label>
+                        <input type="checkbox" name="charts" value="{{ value }}" 
+                            {% if value in form.initial.charts %}checked{% endif %}>
+                        <span class="chart-icon">
+                            {% if 'win_rate' in value %}📈
+                            {% elif 'ratio' in value %}📊
+                            {% elif 'time' in value %}⏱️
+                            {% elif 'volume' in value %}📉
+                            {% else %}📋{% endif %}
+                        </span>
+                        {{ label }}
+                    </label>
+                </div>
+                {% endfor %}
+            </div>
+
+            <div class="form-actions">
+                <button type="submit" class="btn-save">💾 Save Changes</button>
+                <a href="{% url 'users:manage_users_list' %}" class="btn-cancel">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+function toggleChart(element, value) {
+    const checkbox = element.querySelector('input[type="checkbox"]');
+    checkbox.checked = !checkbox.checked;
+    element.classList.toggle('selected', checkbox.checked);
+}
+
+function selectAll() {
+    document.querySelectorAll('.chart-option').forEach(option => {
+        option.classList.add('selected');
+        option.querySelector('input[type="checkbox"]').checked = true;
+    });
+}
+
+function deselectAll() {
+    document.querySelectorAll('.chart-option').forEach(option => {
+        option.classList.remove('selected');
+        option.querySelector('input[type="checkbox"]').checked = false;
+    });
+}
+
+// Prevent double-toggle when clicking directly on checkbox
+document.querySelectorAll('.chart-option input[type="checkbox"]').forEach(checkbox => {
+    checkbox.addEventListener('click', (e) => {
+        e.stopPropagation();
+        checkbox.closest('.chart-option').classList.toggle('selected', checkbox.checked);
+    });
+});
+</script>
+{% endblock %}
+

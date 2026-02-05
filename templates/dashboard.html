@@ -1,0 +1,944 @@
+{% extends 'base.html' %}
+{% block extra_head %}
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        .charts-grid { 
+            display: flex;
+            flex-direction: column;
+            gap: 30px;
+        }
+        .chart-container { 
+            background: #132f4c; 
+            padding: 30px; 
+            border-radius: 16px; 
+            border: 1px solid rgba(56, 189, 248, 0.1);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            position: relative;
+            width: 100%;
+        }
+        .chart-container:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 30px rgba(0,0,0,0.3);
+            border-color: rgba(56, 189, 248, 0.2);
+        }
+        .chart-header {
+            margin-bottom: 20px;
+            border-bottom: 2px solid rgba(14, 165, 233, 0.3);
+            padding-bottom: 15px;
+        }
+        .chart-title { 
+            font-size: 18px; 
+            font-weight: 600; 
+            color: #e2e8f0; 
+            margin-bottom: 15px;
+        }
+        .chart-filters {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+        .chart-filter {
+            flex: 0 0 auto;
+            min-width: 180px;
+        }
+        .chart-filter label {
+            display: block;
+            font-size: 11px;
+            color: #64748b;
+            margin-bottom: 4px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .chart-filter select {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid rgba(56, 189, 248, 0.2);
+            border-radius: 8px;
+            font-size: 13px;
+            background: #0a1929;
+            color: #e2e8f0;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .chart-filter select:hover {
+            border-color: rgba(14, 165, 233, 0.5);
+        }
+        .chart-filter select:focus {
+            outline: none;
+            border-color: #0ea5e9;
+            box-shadow: 0 0 0 2px rgba(14, 165, 233, 0.15);
+        }
+        canvas { 
+            max-height: 450px !important; 
+        }
+        .error { 
+            background: rgba(239, 68, 68, 0.15); 
+            color: #f87171; 
+            padding: 20px; 
+            border-radius: 12px; 
+            margin-bottom: 20px; 
+            border-left: 4px solid #ef4444;
+        }
+        .loading {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 16px;
+            color: #0ea5e9;
+            font-weight: 600;
+            z-index: 10;
+        }
+        .spinner {
+            border: 3px solid rgba(14, 165, 233, 0.2);
+            border-top: 3px solid #0ea5e9;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 10px;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .chart-wrapper {
+            position: relative;
+            min-height: 450px;
+        }
+    </style>
+{% endblock %}
+{% block content %}
+    <div class="container">
+        <!-- Last Updated Badge -->
+        <div class="last-updated" style="margin-bottom: 24px;">
+            Last updated<br>
+            <strong>{{ last_updated|default:"January 2026" }}</strong>
+        </div>
+
+        {% if error %}
+        <div class="error">
+            <strong>Error Loading Dashboard:</strong><br>
+            {{ error }}
+            <br><br>
+            <small>If this issue persists, please contact your administrator.</small>
+        </div>
+        {% endif %}
+
+        <div class="charts-grid">
+            <!-- 1. Creatives Volume -->
+            {% if 'creatives_volume' in allowed_charts %}
+            <div class="chart-container">
+                <div class="chart-header">
+                    <div class="chart-title">Creatives Volume</div>
+                    <div class="chart-filters">
+                        <div class="chart-filter">
+                            <label>Status</label>
+                            <select id="status-10" class="chart-status-filter" data-chart="10">
+                                <option value="">All Status</option>
+                                <option value="winner">Winner</option>
+                                <option value="loser">Loser</option>
+                                <option value="launched">Launched</option>
+                            </select>
+                        </div>
+                        <div class="chart-filter">
+                            <label>Strategist</label>
+                            <select id="strategist-10" class="chart-strategist-filter" data-chart="10">
+                                <option value="">Total (All)</option>
+                                {% for strategist in strategists %}
+                                <option value="{{ strategist }}">{{ strategist }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="chart-filter">
+                            <label>Period</label>
+                            <select id="period-10" class="chart-period-filter" data-chart="10">
+                                <option value="month">Monthly</option>
+                                <option value="week">Weekly</option>
+                                <option value="quarter">Quarterly</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="chart-wrapper">
+                    <div id="loading-10" class="loading" style="display:none;">
+                        <div class="spinner"></div>
+                        Loading...
+                    </div>
+                    <canvas id="creativesVolumeChart"></canvas>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- 2. Win Rate per month/week -->
+            {% if 'win_rate' in allowed_charts %}
+            <div class="chart-container">
+                <div class="chart-header">
+                    <div class="chart-title">Win Rate Over Time</div>
+                    <div class="chart-filters">
+                        <div class="chart-filter">
+                            <label>Period</label>
+                            <select id="period-1" class="chart-period-filter" data-chart="1">
+                                <option value="month">Monthly</option>
+                                <option value="week">Weekly</option>
+                                <option value="quarter">Quarterly</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="chart-wrapper">
+                    <div id="loading-1" class="loading" style="display:none;">
+                        <div class="spinner"></div>
+                        Loading...
+                    </div>
+                    <canvas id="winRateChart"></canvas>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- 2. Win Rate per Strategist -->
+            {% if 'win_rate_strategist' in allowed_charts %}
+            <div class="chart-container">
+                <div class="chart-header">
+                    <div class="chart-title">Win Rate by Strategist</div>
+                    <div class="chart-filters">
+                        <div class="chart-filter">
+                            <label>Period</label>
+                            <select id="period-2" class="chart-period-filter" data-chart="2">
+                                <option value="month">Monthly</option>
+                                <option value="week">Weekly</option>
+                                <option value="quarter">Quarterly</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="chart-wrapper">
+                    <div id="loading-2" class="loading" style="display:none;">
+                        <div class="spinner"></div>
+                        Loading...
+                    </div>
+                    <canvas id="winRateStrategistChart"></canvas>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- 3. Win Rate per Product -->
+            {% if 'win_rate_product' in allowed_charts %}
+            <div class="chart-container">
+                <div class="chart-header">
+                    <div class="chart-title">Win Rate by Product</div>
+                    <div class="chart-filters">
+                        <div class="chart-filter">
+                            <label>Period</label>
+                            <select id="period-3" class="chart-period-filter" data-chart="3">
+                                <option value="month">Monthly</option>
+                                <option value="week">Weekly</option>
+                                <option value="quarter">Quarterly</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="chart-wrapper">
+                    <div id="loading-3" class="loading" style="display:none;">
+                        <div class="spinner"></div>
+                        Loading...
+                    </div>
+                    <canvas id="winRateProductChart"></canvas>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- 4. Win Rate per Ad Type -->
+            {% if 'win_rate_adtype' in allowed_charts %}
+            <div class="chart-container">
+                <div class="chart-header">
+                    <div class="chart-title">Win Rate by Ad Type</div>
+                    <div class="chart-filters">
+                        <div class="chart-filter">
+                            <label>Period</label>
+                            <select id="period-4" class="chart-period-filter" data-chart="4">
+                                <option value="month">Monthly</option>
+                                <option value="week">Weekly</option>
+                                <option value="quarter">Quarterly</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="chart-wrapper">
+                    <div id="loading-4" class="loading" style="display:none;">
+                        <div class="spinner"></div>
+                        Loading...
+                    </div>
+                    <canvas id="winRateAdTypeChart"></canvas>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- 5. Ad Type Ratio -->
+            {% if 'adtype_ratio' in allowed_charts %}
+            <div class="chart-container">
+                <div class="chart-header">
+                    <div class="chart-title">Ad Type Distribution</div>
+                    <div class="chart-filters">
+                        <div class="chart-filter">
+                            <label>Status</label>
+                            <select id="status-5" class="chart-status-filter" data-chart="5">
+                                <option value="">All Status</option>
+                                <option value="winner">Winner</option>
+                                <option value="loser">Loser</option>
+                                <option value="launched">Launched</option>
+                            </select>
+                        </div>
+                        <div class="chart-filter">
+                            <label>Period</label>
+                            <select id="period-5" class="chart-period-filter" data-chart="5">
+                                <option value="month">Monthly</option>
+                                <option value="quarter">Quarterly</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="chart-wrapper">
+                    <div id="loading-5" class="loading" style="display:none;">
+                        <div class="spinner"></div>
+                        Loading...
+                    </div>
+                    <canvas id="adTypeRatioChart"></canvas>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- 6. Product Ratio -->
+            {% if 'product_ratio' in allowed_charts %}
+            <div class="chart-container">
+                <div class="chart-header">
+                    <div class="chart-title">Product Distribution</div>
+                    <div class="chart-filters">
+                        <div class="chart-filter">
+                            <label>Status</label>
+                            <select id="status-6" class="chart-status-filter" data-chart="6">
+                                <option value="">All Status</option>
+                                <option value="winner">Winner</option>
+                                <option value="loser">Loser</option>
+                                <option value="launched">Launched</option>
+                            </select>
+                        </div>
+                        <div class="chart-filter">
+                            <label>Period</label>
+                            <select id="period-6" class="chart-period-filter" data-chart="6">
+                                <option value="month">Monthly</option>
+                                <option value="quarter">Quarterly</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="chart-wrapper">
+                    <div id="loading-6" class="loading" style="display:none;">
+                        <div class="spinner"></div>
+                        Loading...
+                    </div>
+                    <canvas id="productRatioChart"></canvas>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- 7. Format Ratio -->
+            {% if 'format_ratio' in allowed_charts %}
+            <div class="chart-container">
+                <div class="chart-header">
+                    <div class="chart-title">Format Distribution</div>
+                    <div class="chart-filters">
+                        <div class="chart-filter">
+                            <label>Status</label>
+                            <select id="status-7" class="chart-status-filter" data-chart="7">
+                                <option value="">All Status</option>
+                                <option value="winner">Winner</option>
+                                <option value="loser">Loser</option>
+                                <option value="launched">Launched</option>
+                            </select>
+                        </div>
+                        <div class="chart-filter">
+                            <label>Period</label>
+                            <select id="period-7" class="chart-period-filter" data-chart="7">
+                                <option value="month">Monthly</option>
+                                <option value="quarter">Quarterly</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="chart-wrapper">
+                    <div id="loading-7" class="loading" style="display:none;">
+                        <div class="spinner"></div>
+                        Loading...
+                    </div>
+                    <canvas id="formatRatioChart"></canvas>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- 8. Avg Production Time -->
+            {% if 'production_time' in allowed_charts %}
+            <div class="chart-container">
+                <div class="chart-header">
+                    <div class="chart-title">Average Production Time</div>
+                    <div class="chart-filters">
+                        <div class="chart-filter">
+                            <label>Strategist</label>
+                            <select id="strategist-8" class="chart-strategist-filter" data-chart="8">
+                                <option value="">All Strategists</option>
+                                {% for strategist in strategists %}
+                                <option value="{{ strategist }}">{{ strategist }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="chart-filter">
+                            <label>Period</label>
+                            <select id="period-8" class="chart-period-filter" data-chart="8">
+                                <option value="month">Monthly</option>
+                                <option value="week">Weekly</option>
+                                <option value="quarter">Quarterly</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="chart-wrapper">
+                    <div id="loading-8" class="loading" style="display:none;">
+                        <div class="spinner"></div>
+                        Loading...
+                    </div>
+                    <canvas id="productionTimeChart"></canvas>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- 9. Avg Editing Time -->
+            {% if 'editing_time' in allowed_charts %}
+            <div class="chart-container">
+                <div class="chart-header">
+                    <div class="chart-title">Average Editing Time</div>
+                    <div class="chart-filters">
+                        <div class="chart-filter">
+                            <label>Editor/Designer</label>
+                            <select id="editor-9" class="chart-editor-filter" data-chart="9">
+                                <option value="">All Editors</option>
+                                {% for editor in editors %}
+                                <option value="{{ editor }}">{{ editor }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="chart-filter">
+                            <label>Period</label>
+                            <select id="period-9" class="chart-period-filter" data-chart="9">
+                                <option value="month">Monthly</option>
+                                <option value="week">Weekly</option>
+                                <option value="quarter">Quarterly</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="chart-wrapper">
+                    <div id="loading-9" class="loading" style="display:none;">
+                        <div class="spinner"></div>
+                        Loading...
+                    </div>
+                    <canvas id="editingTimeChart"></canvas>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+{% endblock %}
+{% block extra_js %}
+<script>
+    // Initialize all charts
+    let charts = {};
+    let refreshIntervalId = null;
+    let allowed_charts = {{ allowed_charts|safe }};
+    let chartsInitiallyLoaded = {}; // Track which charts have loaded at least once
+
+    // Chart configurations with interactivity
+    const lineChartConfig = {
+        type: 'line',
+        options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            animation: {
+                duration: 800,
+                easing: 'easeInOutQuart'
+            },
+            transitions: {
+                active: {
+                    animation: {
+                        duration: 400
+                    }
+                }
+            },
+            interaction: {
+                mode: 'index',
+                intersect: false,
+            },
+            plugins: {
+                legend: { 
+                    display: true, 
+                    position: 'top',
+                    labels: {
+                        usePointStyle: true,
+                        padding: 15,
+                        font: {
+                            size: 12,
+                            weight: 'bold'
+                        }
+                    }
+                },
+                tooltip: {
+                    enabled: true,
+                    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                    padding: 12,
+                    titleFont: {
+                        size: 14,
+                        weight: 'bold'
+                    },
+                    bodyFont: {
+                        size: 13
+                    },
+                    cornerRadius: 8,
+                    displayColors: true
+                }
+            },
+            scales: {
+                y: { 
+                    beginAtZero: true,
+                    grid: {
+                        color: 'rgba(0, 0, 0, 0.05)'
+                    },
+                    ticks: {
+                        font: {
+                            size: 11
+                        }
+                    }
+                },
+                x: {
+                    grid: {
+                        display: false
+                    },
+                    ticks: {
+                        font: {
+                            size: 11
+                        }
+                    }
+                }
+            }
+        }
+    };
+
+    const stackedBarConfig = {
+        type: 'bar',
+        options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            animation: {
+                duration: 800,
+                easing: 'easeInOutQuart'
+            },
+            transitions: {
+                active: {
+                    animation: {
+                        duration: 400
+                    }
+                }
+            },
+            interaction: {
+                mode: 'index',
+                intersect: false,
+            },
+            plugins: {
+                legend: { 
+                    display: true, 
+                    position: 'top',
+                    labels: {
+                        usePointStyle: true,
+                        padding: 15,
+                        font: {
+                            size: 12,
+                            weight: 'bold'
+                        }
+                    }
+                },
+                tooltip: {
+                    enabled: true,
+                    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                    padding: 12,
+                    titleFont: {
+                        size: 14,
+                        weight: 'bold'
+                    },
+                    bodyFont: {
+                        size: 13
+                    },
+                    footerFont: {
+                        size: 12,
+                        weight: 'bold'
+                    },
+                    cornerRadius: 8,
+                    displayColors: true,
+                    callbacks: {
+                        label: function(context) {
+                            const dataset = context.dataset;
+                            const dataIndex = context.dataIndex;
+                            const value = dataset.data[dataIndex] || 0;
+                            
+                            // Calculate total for this bar (stacked)
+                            let total = 0;
+                            context.chart.data.datasets.forEach(ds => {
+                                total += ds.data[dataIndex] || 0;
+                            });
+                            
+                            const percentage = total > 0 ? ((value / total) * 100).toFixed(1) : 0;
+                            return `${dataset.label}: ${value} (${percentage}%)`;
+                        },
+                        footer: function(tooltipItems) {
+                            // Calculate total for this bar
+                            let total = 0;
+                            const dataIndex = tooltipItems[0]?.dataIndex;
+                            if (dataIndex !== undefined) {
+                                tooltipItems[0].chart.data.datasets.forEach(ds => {
+                                    total += ds.data[dataIndex] || 0;
+                                });
+                            }
+                            return `Total: ${total}`;
+                        }
+                    }
+                }
+            },
+            scales: {
+                x: { 
+                    stacked: true,
+                    grid: {
+                        display: false
+                    },
+                    ticks: {
+                        font: {
+                            size: 11
+                        }
+                    }
+                },
+                y: { 
+                    stacked: true, 
+                    beginAtZero: true,
+                    grid: {
+                        color: 'rgba(0, 0, 0, 0.05)'
+                    },
+                    ticks: {
+                        font: {
+                            size: 11
+                        }
+                    }
+                }
+            }
+        }
+    };
+
+    // Initialize charts - only those in allowed_charts
+    if (allowed_charts.includes('win_rate')) {
+        charts.winRate = new Chart(document.getElementById('winRateChart'), JSON.parse(JSON.stringify(lineChartConfig)));
+    }
+    if (allowed_charts.includes('win_rate_strategist')) {
+        charts.winRateStrategist = new Chart(document.getElementById('winRateStrategistChart'), JSON.parse(JSON.stringify(lineChartConfig)));
+    }
+    if (allowed_charts.includes('win_rate_product')) {
+        charts.winRateProduct = new Chart(document.getElementById('winRateProductChart'), JSON.parse(JSON.stringify(lineChartConfig)));
+    }
+    if (allowed_charts.includes('win_rate_adtype')) {
+        charts.winRateAdType = new Chart(document.getElementById('winRateAdTypeChart'), JSON.parse(JSON.stringify(lineChartConfig)));
+    }
+    if (allowed_charts.includes('adtype_ratio')) {
+        charts.adTypeRatio = new Chart(document.getElementById('adTypeRatioChart'), JSON.parse(JSON.stringify(stackedBarConfig)));
+    }
+    if (allowed_charts.includes('product_ratio')) {
+        charts.productRatio = new Chart(document.getElementById('productRatioChart'), JSON.parse(JSON.stringify(stackedBarConfig)));
+    }
+    if (allowed_charts.includes('format_ratio')) {
+        charts.formatRatio = new Chart(document.getElementById('formatRatioChart'), JSON.parse(JSON.stringify(stackedBarConfig)));
+    }
+    if (allowed_charts.includes('production_time')) {
+        charts.productionTime = new Chart(document.getElementById('productionTimeChart'), JSON.parse(JSON.stringify(lineChartConfig)));
+    }
+    if (allowed_charts.includes('editing_time')) {
+        charts.editingTime = new Chart(document.getElementById('editingTimeChart'), JSON.parse(JSON.stringify(lineChartConfig)));
+    }
+    if (allowed_charts.includes('creatives_volume')) {
+        charts.creativesVolume = new Chart(document.getElementById('creativesVolumeChart'), JSON.parse(JSON.stringify(lineChartConfig)));
+    }
+
+    // Update last updated timestamp
+    function updateLastUpdated() {
+        const now = new Date();
+        const timeString = now.toLocaleTimeString();
+        $('#lastUpdated').text(timeString);
+    }
+
+    // Load chart data
+    function loadChart(chartName, url, params = {}, loadingId) {
+        // Show loading indicator only on initial load, not during streaming updates
+        if (loadingId && !chartsInitiallyLoaded[chartName]) {
+            $(`#${loadingId}`).show();
+        }
+        
+        $.ajax({
+            url: url,
+            type: 'GET',
+            data: params,
+            success: function(data) {
+                // Hide loading indicator
+                if (loadingId) {
+                    $(`#${loadingId}`).hide();
+                }
+                
+                if (data.error) {
+                    console.error(`Error loading ${chartName}:`, data.error);
+                    // Show error message on chart
+                    showChartError(chartName, data.error);
+                } else {
+                    // Replace empty or null labels with "Unknown"
+                    if (data.datasets && Array.isArray(data.datasets)) {
+                        data.datasets.forEach(dataset => {
+                            if (!dataset.label || dataset.label.trim() === '') {
+                                dataset.label = 'Unknown';
+                            }
+                        });
+                    }
+                    
+                    // Clear any existing errors
+                    const canvas = charts[chartName]?.canvas;
+                    if (canvas) {
+                        const container = canvas.parentElement;
+                        const errorDiv = container.querySelector('.chart-error');
+                        if (errorDiv) {
+                            errorDiv.remove();
+                        }
+                    }
+                    
+                    charts[chartName].data.labels = data.labels || [];
+                    charts[chartName].data.datasets = data.datasets || [];
+                    // Use 'none' mode for smooth, live-update feel without animation on refresh
+                    charts[chartName].update('none');
+                    
+                    // Mark chart as initially loaded
+                    chartsInitiallyLoaded[chartName] = true;
+                }
+            },
+            
+            error: function(xhr) {
+                // Hide loading indicator
+                if (loadingId) {
+                    $(`#${loadingId}`).hide();
+                }
+                
+                console.error(`Failed to load ${chartName}:`, xhr.responseText);
+                let errorMsg = 'Failed to load chart data';
+                
+                try {
+                    const response = JSON.parse(xhr.responseText);
+                    if (response.error) {
+                        errorMsg = response.error;
+                    }
+                } catch (e) {
+                    if (xhr.status === 401) {
+                        errorMsg = 'Authentication required. Please log in again.';
+                    } else if (xhr.status === 500) {
+                        errorMsg = 'Server error. Please try again later.';
+                    } else if (xhr.status === 0) {
+                        errorMsg = 'Network error. Please check your internet connection.';
+                    }
+                }
+                
+                showChartError(chartName, errorMsg);
+            }
+        });
+    }
+    
+    // Show error message on chart
+    function showChartError(chartName, errorMsg) {
+        const canvas = charts[chartName]?.canvas;
+        if (canvas) {
+            const container = canvas.parentElement;
+            let errorDiv = container.querySelector('.chart-error');
+            
+            if (!errorDiv) {
+                errorDiv = document.createElement('div');
+                errorDiv.className = 'chart-error';
+                errorDiv.style.cssText = 'position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: #f8d7da; color: #721c24; padding: 20px; border-radius: 8px; max-width: 80%; text-align: center; border: 1px solid #f5c6cb; z-index: 100;';
+                container.appendChild(errorDiv);
+            }
+            
+            errorDiv.innerHTML = `<strong>⚠️ Error:</strong><br>${errorMsg}`;
+        }
+    }
+
+    
+    function winRateChart() {
+        const period = $('#period-1').val();
+        loadChart('winRate', '/api/win-rate/', { period }, 'loading-1');
+    }
+
+    function winRateStrategistChart() {
+        const period = $('#period-2').val();
+        loadChart('winRateStrategist', '/api/win-rate-strategist/', { period }, 'loading-2');
+    }
+
+    function winRateProductChart() {
+        const period = $('#period-3').val();
+        loadChart('winRateProduct', '/api/win-rate-product/', { period }, 'loading-3');
+    }
+
+    function winRateAdTypeChart() {
+        const period = $('#period-4').val();
+        loadChart('winRateAdType', '/api/win-rate-adtype/', { period }, 'loading-4');
+    }
+
+    function adTypeRatioChart() {
+        const period = $('#period-5').val();
+        const status = $('#status-5').val();
+        loadChart('adTypeRatio', '/api/adtype-ratio/', { period, status }, 'loading-5');
+    }
+
+    function productRatioChart() {
+        const period = $('#period-6').val();
+        const status = $('#status-6').val();
+        loadChart('productRatio', '/api/product-ratio/', { period, status }, 'loading-6');
+    }
+
+    function formatRatioChart() {
+        const period = $('#period-7').val();
+        const status = $('#status-7').val();
+        loadChart('formatRatio', '/api/format-ratio/', { period, status }, 'loading-7');
+    }
+
+    function productionTimeChart() {
+        const strategist = $('#strategist-8').val();
+        const period = $('#period-8').val();
+        loadChart('productionTime', '/api/production-time/', { strategist, period }, 'loading-8');
+    }
+
+    function editingTimeChart() {
+        const editor = $('#editor-9').val();
+        const period = $('#period-9').val();
+        loadChart('editingTime', '/api/editing-time/', { editor, period }, 'loading-9');
+    }
+
+    function creativesVolumeChart() {
+        const strategist = $('#strategist-10').val();
+        const period = $('#period-10').val();
+        const status = $('#status-10').val();
+        loadChart('creativesVolume', '/api/creatives-volume/', { period, strategist, status }, 'loading-10');
+    }
+
+    // Load all charts - only those in allowed_charts
+    function loadAllCharts() {
+        console.log('Loading all charts...');
+        
+        if (allowed_charts.includes('win_rate')) {
+            winRateChart();
+        }
+        if (allowed_charts.includes('win_rate_strategist')) {
+            winRateStrategistChart();
+        }
+        if (allowed_charts.includes('win_rate_product')) {
+            winRateProductChart();
+        }
+        if (allowed_charts.includes('win_rate_adtype')) {
+            winRateAdTypeChart();
+        }
+        if (allowed_charts.includes('adtype_ratio')) {
+            adTypeRatioChart();
+        }
+        if (allowed_charts.includes('product_ratio')) {
+            productRatioChart();
+        }
+        if (allowed_charts.includes('format_ratio')) {
+            formatRatioChart();
+        }
+        if (allowed_charts.includes('production_time')) {
+            productionTimeChart();
+        }
+        if (allowed_charts.includes('editing_time')) {
+            editingTimeChart();
+        }
+        if (allowed_charts.includes('creatives_volume')) {
+            creativesVolumeChart();
+        }
+        updateLastUpdated();
+    }
+
+    // Setup auto-refresh for real-time updates
+    function setupAutoRefresh() {
+        // Clear existing interval
+        if (refreshIntervalId) {
+            clearInterval(refreshIntervalId);
+            refreshIntervalId = null;
+        }
+
+        // Auto-refresh every 30 seconds for seamless live updates
+        const interval = 30000; // 30 seconds
+        refreshIntervalId = setInterval(function() {
+            // Silently update all charts without visible refresh
+            loadAllCharts();
+        }, interval);
+        console.log(`Real-time updates enabled: every ${interval/1000} seconds`);
+    }
+
+    // Event listeners for individual chart filters - only for allowed charts
+    if (allowed_charts.includes('win_rate')) {
+        $('#period-1').on('change', winRateChart);
+    }
+    if (allowed_charts.includes('win_rate_strategist')) {
+        $('#period-2').on('change', winRateStrategistChart);
+    }
+    if (allowed_charts.includes('win_rate_product')) {
+        $('#period-3').on('change', winRateProductChart);
+    }
+    if (allowed_charts.includes('win_rate_adtype')) {
+        $('#period-4').on('change', winRateAdTypeChart);
+    }
+    if (allowed_charts.includes('adtype_ratio')) {
+        $('#period-5, #status-5').on('change', adTypeRatioChart);
+    }
+    if (allowed_charts.includes('product_ratio')) {
+        $('#period-6, #status-6').on('change', productRatioChart);
+    }
+    if (allowed_charts.includes('format_ratio')) {
+        $('#period-7, #status-7').on('change', formatRatioChart);
+    }
+    if (allowed_charts.includes('production_time')) {
+        $('#strategist-8, #period-8').on('change', productionTimeChart);
+    }
+    if (allowed_charts.includes('editing_time')) {
+        $('#editor-9, #period-9').on('change', editingTimeChart);
+    }
+    if (allowed_charts.includes('creatives_volume')) {
+        $('#strategist-10, #period-10, #status-10').on('change', creativesVolumeChart);
+    }
+
+    // Initial load
+    $(document).ready(function() {
+        console.log('Dashboard loaded, initializing charts...');
+        loadAllCharts();
+        setupAutoRefresh();
+    });
+
+    // Cleanup on page unload
+    $(window).on('beforeunload', function() {
+        if (refreshIntervalId) {
+            clearInterval(refreshIntervalId);
+        }
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,19 @@
+#!/bin/bash
+set -e
+
+echo "Step 1: Changing directory to /home/ubuntu/dashboard_charts..."
+cd /home/ubuntu/dashboard_charts
+
+echo "Step 2: Activating virtual environment..."
+source venv/bin/activate
+
+echo "Step 3: Installing/updating Python dependencies inside venv..."
+python -m pip install --no-cache-dir -r requirements.txt
+
+echo "Step 4: Reloading systemd manager configuration..."
+sudo systemctl daemon-reload
+
+echo "Step 5: Restarting notion_dashboard service..."
+sudo systemctl restart notion_dashboard
+
+echo "Deployment script completed successfully."

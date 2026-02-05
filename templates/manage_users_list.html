@@ -1,0 +1,188 @@
+{% extends 'base.html' %}
+{% block extra_head %}
+<style>
+    .page-title {
+        color: #e2e8f0;
+        font-size: 1.5rem;
+        font-weight: 600;
+        margin-bottom: 24px;
+    }
+    .users-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 20px;
+        background: #132f4c;
+        border-radius: 12px;
+        overflow: hidden;
+        border: 1px solid rgba(56, 189, 248, 0.1);
+    }
+    .users-table thead {
+        background: #0d2137;
+    }
+    .users-table th {
+        padding: 14px 16px;
+        text-align: left;
+        color: #94a3b8;
+        font-weight: 600;
+        font-size: 0.85rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        border-bottom: 1px solid rgba(56, 189, 248, 0.1);
+    }
+    .users-table td {
+        padding: 14px 16px;
+        color: #e2e8f0;
+        border-bottom: 1px solid rgba(56, 189, 248, 0.08);
+    }
+    .users-table tbody tr:hover {
+        background: rgba(14, 165, 233, 0.05);
+    }
+    .users-table tbody tr:last-child td {
+        border-bottom: none;
+    }
+    .btn-manage {
+        background: rgba(14, 165, 233, 0.15);
+        border: 1px solid rgba(14, 165, 233, 0.3);
+        color: #0ea5e9;
+        padding: 8px 16px;
+        border-radius: 6px;
+        font-weight: 500;
+        font-size: 0.85rem;
+        text-decoration: none;
+        transition: all 0.2s ease;
+        display: inline-block;
+    }
+    .btn-manage:hover {
+        background: rgba(14, 165, 233, 0.25);
+        border-color: rgba(14, 165, 233, 0.5);
+    }
+    .btn-remove {
+        background: rgba(239, 68, 68, 0.15);
+        border: 1px solid rgba(239, 68, 68, 0.3);
+        color: #f87171;
+        padding: 8px 16px;
+        border-radius: 6px;
+        font-weight: 500;
+        font-size: 0.85rem;
+        cursor: pointer;
+        margin-left: 10px;
+        transition: all 0.2s ease;
+    }
+    .btn-remove:hover {
+        background: rgba(239, 68, 68, 0.25);
+        border-color: rgba(239, 68, 68, 0.5);
+    }
+    .admin-badge {
+        color: #10b981;
+    }
+    .not-admin {
+        color: #64748b;
+    }
+</style>
+{% endblock %}
+{% block content %}
+<div class="container">
+    <h2 class="page-title">Manage User Chart Access</h2>
+    <table class="users-table">
+        <thead>
+            <tr>
+                <th>Username</th>
+                <th>Email</th>
+                <th>Is Admin</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for user in users %}
+            <tr>
+                <td>{{ user.username }}</td>
+                <td>{{ user.email }}</td>
+                <td>{% if user.is_superuser %}<span class="admin-badge">✔️</span>{% else %}<span class="not-admin">—</span>{% endif %}</td>
+                <td>
+                    <a href="{% url 'users:manage_user_access' user.id %}" class="btn-manage">Manage Access</a>
+                    {% if not user.is_superuser or user.id != request.user.id %}
+                    <button type="button" 
+                            onclick="openRemoveUserModal('{{ user.id }}', '{{ user.username }}', '{{ user.email }}')"
+                            class="btn-remove">
+                        Remove
+                    </button>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<!-- Remove User Modal -->
+<div class="modal" id="removeUserModal">
+    <div class="modal-content">
+        <button class="modal-close" onclick="closeRemoveUserModal()">&times;</button>
+        <div class="modal-title">Confirm Remove User</div>
+        <p id="removeUserMessage">Are you sure you want to remove this user? This will prevent them from logging in.</p>
+        <form id="removeUserForm" method="post" action="">
+            {% csrf_token %}
+            <div class="modal-footer">
+                <button type="submit" class="btn-primary" style="background:#dc3545;">Remove User</button>
+                <button type="button" class="btn-primary" style="background:#888" onclick="closeRemoveUserModal()">Cancel</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+const removeUserModal = document.getElementById('removeUserModal');
+const removeUserForm = document.getElementById('removeUserForm');
+const removeUserMessage = document.getElementById('removeUserMessage');
+let currentUserId = null;
+
+function openRemoveUserModal(userId, username, email) {
+    currentUserId = userId;
+    const displayName = email || username;
+    removeUserMessage.textContent = `Are you sure you want to remove ${displayName}? This will prevent them from logging in.`;
+    removeUserModal.classList.add('active');
+}
+
+function closeRemoveUserModal() {
+    removeUserModal.classList.remove('active');
+    currentUserId = null;
+}
+
+// Handle form submission with API
+removeUserForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    if (!currentUserId) return;
+    
+    try {
+        const response = await fetch(`/api/remove-user/${currentUserId}/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}',
+                'Content-Type': 'application/json'
+            }
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            // Show success message and reload page
+            closeRemoveUserModal();
+            window.location.reload();
+        } else {
+            alert(data.message || 'Failed to remove user');
+        }
+    } catch (error) {
+        alert('An error occurred while removing the user');
+        console.error('Error:', error);
+    }
+});
+
+// Close modal when clicking outside
+removeUserModal.addEventListener('click', (e) => {
+    if (e.target === removeUserModal) {
+        closeRemoveUserModal();
+    }
+});
+</script>
+{% endblock %}

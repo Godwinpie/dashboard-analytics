@@ -1,0 +1,666 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Halasmile Creative Analytics{% endblock %}</title>
+
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #0a1929;
+            margin: 0;
+            min-height: 100vh;
+            color: #e2e8f0;
+        }
+
+        /* Navbar */
+        .main-navbar {
+            background: #0d2137;
+            border-bottom: 1px solid rgba(56, 189, 248, 0.1);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+        }
+        .main-navbar-inner {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 30px;
+            height: 72px;
+        }
+        .logo-container {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+        .logo-icon {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, #0ea5e9 0%, #06b6d4 100%);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.3rem;
+        }
+        .logo-text {
+            display: flex;
+            flex-direction: column;
+        }
+        .logo {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: #fff;
+            text-decoration: none;
+            line-height: 1.2;
+        }
+        .logo-subtitle {
+            font-size: 0.75rem;
+            color: #64748b;
+            font-weight: 400;
+        }
+        .nav-links {
+            display: flex;
+            gap: 12px;
+        }
+        .nav-link {
+            background: rgba(14, 165, 233, 0.1);
+            border: 1px solid rgba(14, 165, 233, 0.2);
+            color: #0ea5e9;
+            font-weight: 500;
+            font-size: 0.9rem;
+            padding: 8px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            text-decoration: none;
+            transition: all 0.2s ease;
+        }
+        .nav-link:hover {
+            background: rgba(14, 165, 233, 0.2);
+            border-color: rgba(14, 165, 233, 0.4);
+        }
+
+        /* User */
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: #e2e8f0;
+        }
+        .user-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #0ea5e9 0%, #06b6d4 100%);
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+        .user-name {
+            font-weight: 500;
+            color: #94a3b8;
+        }
+        .logout-link {
+            background: rgba(239, 68, 68, 0.15);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            color: #f87171;
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-weight: 500;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .logout-link:hover {
+            background: rgba(239, 68, 68, 0.25);
+            border-color: rgba(239, 68, 68, 0.5);
+        }
+
+        /* Layout */
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 30px 20px 40px;
+        }
+
+        /* Last Updated Badge */
+        .last-updated {
+            text-align: right;
+            font-size: 0.8rem;
+            color: #64748b;
+        }
+        .last-updated strong {
+            display: block;
+            color: #e2e8f0;
+            font-size: 0.95rem;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #0ea5e9 0%, #06b6d4 100%);
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            padding: 12px 28px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        /* ===== Modal Overlay ===== */
+        .modal {
+            position: fixed;
+            inset: 0;
+            background: rgba(15, 18, 25, 0.75);
+            backdrop-filter: blur(4px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        /* Active state */
+        .modal.active {
+            display: flex;
+        }
+
+        /* ===== Modal Box ===== */
+        .modal-content {
+            background: #132f4c;
+            border: 1px solid rgba(56, 189, 248, 0.1);
+            border-radius: 14px;
+            padding: 28px 26px;
+            width: 100%;
+            max-width: 520px;
+            box-shadow:
+                0 20px 40px rgba(0,0,0,0.4),
+                0 2px 8px rgba(0,0,0,0.2);
+            position: relative;
+            animation: modalFadeIn 0.25s ease-out;
+        }
+
+        /* Smaller modal (logout) */
+        #logoutModal .modal-content {
+            max-width: 420px;
+        }
+
+        /* ===== Title ===== */
+        .modal-title {
+            font-size: 1.35rem;
+            font-weight: 700;
+            color: #e2e8f0;
+            margin-bottom: 18px;
+        }
+
+        /* ===== Close Button ===== */
+        .modal-close {
+            position: absolute;
+            top: 14px;
+            right: 16px;
+            border: none;
+            background: none;
+            font-size: 1.6rem;
+            color: #64748b;
+            cursor: pointer;
+            transition: color 0.15s ease;
+        }
+
+        .modal-close:hover {
+            color: #e2e8f0;
+        }
+
+        /* ===== Form ===== */
+        .form-group {
+            margin-bottom: 18px;
+        }
+
+        .form-group label {
+            display: block;
+            font-weight: 600;
+            font-size: 0.95rem;
+            margin-bottom: 6px;
+            color: #94a3b8;
+        }
+
+        .form-group input[type="email"],
+        .form-group input[type="text"],
+        .form-group input[type="password"] {
+            width: 100%;
+            padding: 11px 12px;
+            border-radius: 8px;
+            border: 1px solid rgba(56, 189, 248, 0.2);
+            background: #0a1929;
+            color: #e2e8f0;
+            font-size: 0.95rem;
+            transition: border-color 0.15s ease, box-shadow 0.15s ease;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #0ea5e9;
+            box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.2);
+        }
+
+        /* Checkbox group */
+        .form-group input[type="checkbox"] {
+            margin-right: 6px;
+        }
+
+        /* ===== Footer ===== */
+        .modal-footer {
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+            margin-top: 22px;
+        }
+
+        /* ===== Message Area ===== */
+        #inviteUserMsg {
+            margin-top: 14px;
+            font-size: 0.95rem;
+        }
+
+        /* ===== Animation ===== */
+        @keyframes modalFadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px) scale(0.98);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        /* ===== Messages ===== */
+        .messages {
+            position: fixed;
+            top: 80px;
+            right: 20px;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            max-width: 400px;
+        }
+
+        .message {
+            padding: 16px 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 0.95rem;
+            font-weight: 500;
+            position: relative;
+            animation: slideIn 0.3s ease-out;
+            backdrop-filter: blur(10px);
+        }
+
+        .message-icon {
+            font-size: 1.3rem;
+            flex-shrink: 0;
+        }
+
+        .message-text {
+            flex: 1;
+        }
+
+        .message-close {
+            background: none;
+            border: none;
+            font-size: 1.3rem;
+            cursor: pointer;
+            padding: 0;
+            margin-left: 8px;
+            opacity: 0.7;
+            transition: opacity 0.2s ease;
+            flex-shrink: 0;
+        }
+
+        .message-close:hover {
+            opacity: 1;
+        }
+
+        /* Success */
+        .message.success {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: #fff;
+        }
+
+        /* Error */
+        .message.error {
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+            color: #fff;
+        }
+
+        /* Warning */
+        .message.warning {
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+            color: #fff;
+        }
+
+        /* Info */
+        .message.info {
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+            color: #fff;
+        }
+
+        /* Default (if no tag) */
+        .message:not(.success):not(.error):not(.warning):not(.info) {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #fff;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(100px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        @keyframes slideOut {
+            from {
+                opacity: 1;
+                transform: translateX(0);
+            }
+            to {
+                opacity: 0;
+                transform: translateX(100px);
+            }
+        }
+
+        .message.removing {
+            animation: slideOut 0.3s ease-out forwards;
+        }
+
+        /* ===== Mobile ===== */
+        @media (max-width: 480px) {
+            .modal-content {
+                margin: 0 12px;
+                padding: 22px 20px;
+            }
+            
+            .messages {
+                left: 12px;
+                right: 12px;
+                max-width: none;
+            }
+        }
+    </style>
+
+    {% block extra_head %}{% endblock %}
+</head>
+<body>
+
+<nav class="main-navbar">
+    <div class="main-navbar-inner">
+        <a href="{% url 'dashboard' %}" class="logo-container" style="text-decoration: none;">
+            <div class="logo-icon">📊</div>
+            <div class="logo-text">
+                <span class="logo">Halasmile Creative Analytics</span>
+                <span class="logo-subtitle">Creative Performance Dashboard</span>
+            </div>
+        </a>
+
+        <div class="nav-links">
+            {% if user.is_superuser %}
+                <button class="nav-link" id="openInviteModal">➕ Invite User</button>
+                {# Show Manage Users if on dashboard, else show Dashboard if on manage users or manage user access #}
+                {% if request.resolver_match.url_name == 'dashboard' %}
+                    <a href="{% url 'users:manage_users_list' %}" class="nav-link">👥 Manage Users</a>
+                {% elif request.resolver_match.url_name == 'manage_users_list' or request.resolver_match.url_name == 'manage_user_access' %}
+                    <a href="{% url 'dashboard' %}" class="nav-link">🏠 Dashboard</a>
+                {% endif %}
+            {% endif %}
+        </div>
+
+        <div class="user-info">
+            {% if user.is_authenticated %}
+                <div class="user-avatar">{{ user.username|first|upper }}</div>
+                <span class="user-name">{{ user.username }}</span>
+                <button class="logout-link" id="openLogoutModal">Logout</button>
+            {% else %}
+                <a href="{% url 'users:login' %}" class="nav-link">Login</a>
+            {% endif %}
+        </div>
+    </div>
+</nav>
+
+<main>
+    {% if messages %}
+        <div class="messages">
+            {% for message in messages %}
+            <div class="message {{ message.tags }}">
+                <span class="message-icon">
+                    {% if 'success' in message.tags %}
+                        ✓
+                    {% elif 'error' in message.tags %}
+                        ✕
+                    {% elif 'warning' in message.tags %}
+                        ⚠
+                    {% elif 'info' in message.tags %}
+                        ℹ
+                    {% else %}
+                        ●
+                    {% endif %}
+                </span>
+                <span class="message-text">{{ message }}</span>
+                <button class="message-close" onclick="dismissMessage(this)">&times;</button>
+            </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+    <div class="container">
+        {% block content %}{% endblock %}
+    </div>
+</main>
+
+<!-- Invite User Modal -->
+<div class="modal" id="inviteUserModal">
+    <div class="modal-content" style="max-width: 580px;">
+        <button class="modal-close" onclick="closeInviteModal()">&times;</button>
+        
+        <div style="text-align: center; margin-bottom: 24px;">
+            <div style="width: 56px; height: 56px; background: linear-gradient(135deg, #0ea5e9 0%, #06b6d4 100%); border-radius: 14px; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px; font-size: 1.5rem;">✉️</div>
+            <div class="modal-title" style="margin-bottom: 6px;">Invite New User</div>
+            <p style="color: #64748b; font-size: 0.9rem; margin: 0;">Send an invitation to join the dashboard</p>
+        </div>
+
+        <form id="inviteUserForm">
+            <div class="form-group">
+                <label style="color: #94a3b8; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.5px;">Email Address</label>
+                <input type="email" name="email" required placeholder="user@example.com" 
+                       style="width:100%; padding:14px 16px; background: #0a1929; border: 1px solid rgba(56, 189, 248, 0.2); border-radius: 8px; color: #e2e8f0; font-size: 0.95rem;">
+            </div>
+
+            {% if user.is_superuser %}
+            <div class="form-group" style="margin-top: 24px;">
+                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
+                    <label style="color: #94a3b8; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.5px; margin: 0;">Chart Access Permissions</label>
+                    <div style="display: flex; gap: 8px;">
+                        <button type="button" onclick="selectAllCharts()" style="background: rgba(14, 165, 233, 0.1); border: 1px solid rgba(14, 165, 233, 0.2); color: #0ea5e9; padding: 4px 10px; border-radius: 5px; font-size: 0.75rem; cursor: pointer;">Select All</button>
+                        <button type="button" onclick="deselectAllCharts()" style="background: rgba(100, 116, 139, 0.1); border: 1px solid rgba(100, 116, 139, 0.2); color: #64748b; padding: 4px 10px; border-radius: 5px; font-size: 0.75rem; cursor: pointer;">Clear</button>
+                    </div>
+                </div>
+                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px;" id="chartPermissions">
+                    <label class="chart-checkbox" style="display: flex; align-items: center; gap: 10px; padding: 12px; background: #0d2137; border: 1px solid rgba(56, 189, 248, 0.08); border-radius: 8px; cursor: pointer; color: #94a3b8; font-size: 0.9rem; transition: all 0.2s ease;">
+                        <input type="checkbox" name="chart_access" value="win_rate" style="width: 18px; height: 18px; accent-color: #0ea5e9;">
+                        <span>📈</span> Win Rate Over Time
+                    </label>
+                    <label class="chart-checkbox" style="display: flex; align-items: center; gap: 10px; padding: 12px; background: #0d2137; border: 1px solid rgba(56, 189, 248, 0.08); border-radius: 8px; cursor: pointer; color: #94a3b8; font-size: 0.9rem; transition: all 0.2s ease;">
+                        <input type="checkbox" name="chart_access" value="win_rate_strategist" style="width: 18px; height: 18px; accent-color: #0ea5e9;">
+                        <span>📈</span> Win Rate by Strategist
+                    </label>
+                    <label class="chart-checkbox" style="display: flex; align-items: center; gap: 10px; padding: 12px; background: #0d2137; border: 1px solid rgba(56, 189, 248, 0.08); border-radius: 8px; cursor: pointer; color: #94a3b8; font-size: 0.9rem; transition: all 0.2s ease;">
+                        <input type="checkbox" name="chart_access" value="win_rate_product" style="width: 18px; height: 18px; accent-color: #0ea5e9;">
+                        <span>📈</span> Win Rate by Product
+                    </label>
+                    <label class="chart-checkbox" style="display: flex; align-items: center; gap: 10px; padding: 12px; background: #0d2137; border: 1px solid rgba(56, 189, 248, 0.08); border-radius: 8px; cursor: pointer; color: #94a3b8; font-size: 0.9rem; transition: all 0.2s ease;">
+                        <input type="checkbox" name="chart_access" value="win_rate_adtype" style="width: 18px; height: 18px; accent-color: #0ea5e9;">
+                        <span>📈</span> Win Rate by Ad Type
+                    </label>
+                    <label class="chart-checkbox" style="display: flex; align-items: center; gap: 10px; padding: 12px; background: #0d2137; border: 1px solid rgba(56, 189, 248, 0.08); border-radius: 8px; cursor: pointer; color: #94a3b8; font-size: 0.9rem; transition: all 0.2s ease;">
+                        <input type="checkbox" name="chart_access" value="adtype_ratio" style="width: 18px; height: 18px; accent-color: #0ea5e9;">
+                        <span>📊</span> Ad Type Ratio
+                    </label>
+                    <label class="chart-checkbox" style="display: flex; align-items: center; gap: 10px; padding: 12px; background: #0d2137; border: 1px solid rgba(56, 189, 248, 0.08); border-radius: 8px; cursor: pointer; color: #94a3b8; font-size: 0.9rem; transition: all 0.2s ease;">
+                        <input type="checkbox" name="chart_access" value="product_ratio" style="width: 18px; height: 18px; accent-color: #0ea5e9;">
+                        <span>📊</span> Product Ratio
+                    </label>
+                    <label class="chart-checkbox" style="display: flex; align-items: center; gap: 10px; padding: 12px; background: #0d2137; border: 1px solid rgba(56, 189, 248, 0.08); border-radius: 8px; cursor: pointer; color: #94a3b8; font-size: 0.9rem; transition: all 0.2s ease;">
+                        <input type="checkbox" name="chart_access" value="format_ratio" style="width: 18px; height: 18px; accent-color: #0ea5e9;">
+                        <span>📊</span> Format Ratio
+                    </label>
+                    <label class="chart-checkbox" style="display: flex; align-items: center; gap: 10px; padding: 12px; background: #0d2137; border: 1px solid rgba(56, 189, 248, 0.08); border-radius: 8px; cursor: pointer; color: #94a3b8; font-size: 0.9rem; transition: all 0.2s ease;">
+                        <input type="checkbox" name="chart_access" value="production_time" style="width: 18px; height: 18px; accent-color: #0ea5e9;">
+                        <span>⏱️</span> Avg Production Time
+                    </label>
+                    <label class="chart-checkbox" style="display: flex; align-items: center; gap: 10px; padding: 12px; background: #0d2137; border: 1px solid rgba(56, 189, 248, 0.08); border-radius: 8px; cursor: pointer; color: #94a3b8; font-size: 0.9rem; transition: all 0.2s ease;">
+                        <input type="checkbox" name="chart_access" value="editing_time" style="width: 18px; height: 18px; accent-color: #0ea5e9;">
+                        <span>⏱️</span> Avg Editing Time
+                    </label>
+                    <label class="chart-checkbox" style="display: flex; align-items: center; gap: 10px; padding: 12px; background: #0d2137; border: 1px solid rgba(56, 189, 248, 0.08); border-radius: 8px; cursor: pointer; color: #94a3b8; font-size: 0.9rem; transition: all 0.2s ease;">
+                        <input type="checkbox" name="chart_access" value="creatives_volume" style="width: 18px; height: 18px; accent-color: #0ea5e9;">
+                        <span>📉</span> Creatives Volume
+                    </label>
+                </div>
+            </div>
+            {% endif %}
+
+            <div id="inviteUserMsg" style="margin-top: 16px; padding: 12px; border-radius: 8px; text-align: center; display: none;"></div>
+
+            <div class="modal-footer" style="margin-top: 24px; padding-top: 20px; border-top: 1px solid rgba(56, 189, 248, 0.1);">
+                <button type="submit" class="btn-primary" style="width: 100%; padding: 14px;">✉️ Send Invitation</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Logout Modal -->
+<div class="modal" id="logoutModal">
+    <div class="modal-content" style="max-width: 400px; text-align: center;">
+        <button class="modal-close" onclick="closeLogoutModal()">&times;</button>
+        
+        <div style="width: 56px; height: 56px; background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.3); border-radius: 14px; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px; font-size: 1.5rem;">👋</div>
+        <div class="modal-title" style="margin-bottom: 8px;">Confirm Logout</div>
+        <p style="color: #64748b; margin-bottom: 24px;">Are you sure you want to logout from your account?</p>
+        
+        <div class="modal-footer" style="flex-direction: column; gap: 10px;">
+            <a href="{% url 'users:logout' %}" class="btn-primary" style="width: 100%; padding: 14px; text-decoration: none; display: block; text-align: center; background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);">Logout</a>
+            <button class="btn-primary" style="width: 100%; padding: 14px; background: rgba(100, 116, 139, 0.2); border: 1px solid rgba(100, 116, 139, 0.3); color: #94a3b8;" onclick="closeLogoutModal()">Cancel</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    const inviteModal = document.getElementById('inviteUserModal');
+    const logoutModal = document.getElementById('logoutModal');
+
+    document.getElementById('openInviteModal')?.addEventListener('click', () => inviteModal.classList.add('active'));
+    document.getElementById('openLogoutModal')?.addEventListener('click', () => logoutModal.classList.add('active'));
+
+    function closeInviteModal() {
+        inviteModal.classList.remove('active');
+        document.getElementById('inviteUserForm').reset();
+        const msg = document.getElementById('inviteUserMsg');
+        msg.style.display = 'none';
+        msg.innerHTML = '';
+    }
+    function closeLogoutModal() {
+        logoutModal.classList.remove('active');
+    }
+
+    function selectAllCharts() {
+        document.querySelectorAll('#chartPermissions input[type="checkbox"]').forEach(cb => cb.checked = true);
+    }
+    function deselectAllCharts() {
+        document.querySelectorAll('#chartPermissions input[type="checkbox"]').forEach(cb => cb.checked = false);
+    }
+
+    document.getElementById('inviteUserForm')?.addEventListener('submit', async e => {
+        e.preventDefault();
+        const data = new URLSearchParams(new FormData(e.target));
+        const msg = document.getElementById('inviteUserMsg');
+        msg.style.display = 'block';
+        msg.style.background = 'rgba(14, 165, 233, 0.1)';
+        msg.style.color = '#0ea5e9';
+        msg.textContent = 'Sending invitation...';
+
+        try {
+            const resp = await fetch('{% url "users:invite_user" %}', {
+                method: 'POST',
+                headers: { 'X-CSRFToken': '{{ csrf_token }}' },
+                body: data
+            });
+
+            const result = await resp.json();
+
+            if (result.success) {
+                msg.style.background = 'rgba(16, 185, 129, 0.15)';
+                msg.style.color = '#10b981';
+                msg.innerHTML = '✓ ' + result.message;
+                
+                // Reload page after success to show updated user list
+                setTimeout(() => {
+                    closeInviteModal();
+                    window.location.reload();
+                }, 1500);
+            } else {
+                msg.style.background = 'rgba(239, 68, 68, 0.15)';
+                msg.style.color = '#f87171';
+                msg.innerHTML = '✕ ' + result.message;
+            }
+        } catch (error) {
+            msg.style.background = 'rgba(239, 68, 68, 0.15)';
+            msg.style.color = '#f87171';
+            msg.innerHTML = '✕ Network error. Please try again.';
+        }
+    });
+
+    // Auto-dismiss messages after 5 seconds
+    function autoDismissMessages() {
+        const messages = document.querySelectorAll('.message');
+        messages.forEach(message => {
+            setTimeout(() => {
+                dismissMessage(message.querySelector('.message-close'));
+            }, 5000);
+        });
+    }
+
+    // Dismiss individual message
+    function dismissMessage(btn) {
+        const message = btn.closest('.message');
+        message.classList.add('removing');
+        setTimeout(() => {
+            message.remove();
+            // Remove container if no messages left
+            const container = document.querySelector('.messages');
+            if (container && !container.querySelector('.message')) {
+                container.remove();
+            }
+        }, 300);
+    }
+
+    // Initialize auto-dismiss on page load
+    if (document.querySelector('.message')) {
+        autoDismissMessages();
+    }
+</script>
+
+{% block extra_js %}{% endblock %}
+</body>
+</html>
