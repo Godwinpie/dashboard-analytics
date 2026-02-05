@@ -10,6 +10,9 @@ source venv/bin/activate
 echo "Step 3: Installing/updating Python dependencies inside venv..."
 python -m pip install --no-cache-dir -r requirements.txt
 
+python manage.py makemigrations
+python manage.py migrate
+
 echo "Step 4: Reloading systemd manager configuration..."
 sudo systemctl daemon-reload
 
