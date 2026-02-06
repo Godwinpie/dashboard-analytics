@@ -211,7 +211,7 @@ Campaign Analytics Team
         """
         
         # Email subject
-        subject = 'Welcome to Campaign Analytics Dashboard'
+        subject = 'Welcome to Halasmile Creative Analytics'
         
         # Create email message with HTML alternative
         email_msg = EmailMultiAlternatives(
