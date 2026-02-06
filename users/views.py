@@ -194,7 +194,7 @@ class InviteUserView(LoginRequiredMixin, UserPassesTestMixin, View):
         
         # Plain text fallback
         text_message = f"""
-Welcome to Campaign Analytics!
+Welcome to Halasmile Creative Analytics!
 
 You have been invited by {inviter_name} to join the Creative Performance Dashboard.
 
@@ -207,7 +207,7 @@ Login here: {login_url}
 Please change your password after your first login.
 
 Best regards,
-Campaign Analytics Team
+Halasmile Creative Analytics Team
         """
         
         # Email subject
